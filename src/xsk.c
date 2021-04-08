@@ -1017,6 +1017,7 @@ int xsk_socket__create_shared(struct xsk_socket **xsk_ptr,
 			      struct xsk_ring_cons *comp,
 			      const struct xsk_socket_config *usr_config)
 {
+	bool unmap, rx_setup_done = false, tx_setup_done = false;
 	void *rx_map = NULL, *tx_map = NULL;
 	struct sockaddr_xdp sxdp = {};
 	struct xdp_mmap_offsets off;
@@ -1028,6 +1029,8 @@ int xsk_socket__create_shared(struct xsk_socket **xsk_ptr,
 
 	if (!umem || !xsk_ptr || !(rx || tx))
 		return -EFAULT;
+
+	unmap = umem->fill_save != fill;
 
 	xsk = calloc(1, sizeof(*xsk));
 	if (!xsk)
