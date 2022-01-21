@@ -13,11 +13,6 @@ set(is-clang $<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>>)
 set(is-gnu $<CXX_COMPILER_ID:GNU>)
 set(compiler-id-clang-or-gnu $<OR:${is-clang},${is-gnu}>)
 
-# file(GLOB BPF_SRC_FILES
-#     "src/*.cpp"
-#     "src/pf/*.cpp"
-#     "src/yang/*.cpp")
-
 set(BPF_SRC_FILES
     src/bpf.c
     src/btf.c
@@ -39,6 +34,13 @@ set(BPF_SRC_FILES
 )
 add_library(bpf ${BPF_SRC_FILES})
 add_library(bpf::bpf ALIAS bpf)
+
+target_include_directories(
+    bpf
+    PUBLIC
+    "$<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/usr/include>"
+    "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>"
+)
 
 target_include_directories(bpf PRIVATE
     ${CMAKE_CURRENT_LIST_DIR}/include
