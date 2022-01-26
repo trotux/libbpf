@@ -8,6 +8,8 @@ if (NOT CMAKE_BUILD_TYPE)
     set (CMAKE_BUILD_TYPE RelWithDebInfo)
 endif (NOT CMAKE_BUILD_TYPE)
 
+get_directory_property(HAS_PARENT PARENT_DIRECTORY)
+
 set (CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(is-clang $<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>>)
 set(is-gnu $<CXX_COMPILER_ID:GNU>)
@@ -77,32 +79,32 @@ add_custom_command(
     COMMAND install -m 0644 -D ${CMAKE_CURRENT_LIST_DIR}/src/libbpf_version.h ${LIBBPF_INCLUDE_DIR}/libbpf_version.h
     COMMAND install -m 0644 -D ${CMAKE_CURRENT_LIST_DIR}/src/xsk.h ${LIBBPF_INCLUDE_DIR}/xsk.h
 )
-#COMMAND install -m 0644 -D ${CMAKE_CURRENT_LIST_DIR}/include/linux/err.h ${LINUX_INCLUDE_DIR}/err.h
-#COMMAND install -m 0644 -D ${CMAKE_CURRENT_LIST_DIR}/include/linux/list.h ${LINUX_INCLUDE_DIR}/list.h
-#COMMAND install -m 0644 -D ${CMAKE_CURRENT_LIST_DIR}/include/linux/types.h ${LINUX_INCLUDE_DIR}/types.h
 
-message(STATUS "Generating install")
-install(DIRECTORY include/ DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
-install(
-    TARGETS bpf
-    EXPORT bpf
-    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+if(NOT HAS_PARENT)
+    message(STATUS "Generating install")
+    install(DIRECTORY include/ DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
+    install(
+        TARGETS bpf
+        EXPORT bpf
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+    )
 
-set(project_config_in "${CMAKE_CURRENT_LIST_DIR}/cmake/bpfConfig.cmake.in")
-set(project_config_out "${CMAKE_CURRENT_BINARY_DIR}/bpfConfig.cmake")
-set(config_targets_file "bpfConfigTargets.cmake")
-set(version_config_file "${CMAKE_CURRENT_BINARY_DIR}/bpfConfigVersion.cmake")
-set(export_dest_dir "${CMAKE_INSTALL_LIBDIR}/cmake/bpf")
+    set(project_config_in "${CMAKE_CURRENT_LIST_DIR}/cmake/bpfConfig.cmake.in")
+    set(project_config_out "${CMAKE_CURRENT_BINARY_DIR}/bpfConfig.cmake")
+    set(config_targets_file "bpfConfigTargets.cmake")
+    set(version_config_file "${CMAKE_CURRENT_BINARY_DIR}/bpfConfigVersion.cmake")
+    set(export_dest_dir "${CMAKE_INSTALL_LIBDIR}/cmake/bpf")
 
-# ---------------------------------------------------------------------------------------
-# Install CMake config files
-# ---------------------------------------------------------------------------------------
-install(EXPORT bpf DESTINATION ${export_dest_dir} NAMESPACE bpf:: FILE ${config_targets_file})
+    # ---------------------------------------------------------------------------------------
+    # Install CMake config files
+    # ---------------------------------------------------------------------------------------
+    install(EXPORT bpf DESTINATION ${export_dest_dir} NAMESPACE bpf:: FILE ${config_targets_file})
 
-include(CMakePackageConfigHelpers)
-configure_file("${project_config_in}" "${project_config_out}" @ONLY)
+    include(CMakePackageConfigHelpers)
+    configure_file("${project_config_in}" "${project_config_out}" @ONLY)
 
-write_basic_package_version_file("${version_config_file}" COMPATIBILITY SameMajorVersion)
-install(FILES "${project_config_out}" "${version_config_file}" DESTINATION "${export_dest_dir}")
+    write_basic_package_version_file("${version_config_file}" COMPATIBILITY SameMajorVersion)
+    install(FILES "${project_config_out}" "${version_config_file}" DESTINATION "${export_dest_dir}")
+endif()
